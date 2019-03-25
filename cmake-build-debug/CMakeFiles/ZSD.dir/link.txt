@@ -1,0 +1,1 @@
+/usr/bin/c++  -g   CMakeFiles/ZSD.dir/main.cpp.o  -o ZSD 
