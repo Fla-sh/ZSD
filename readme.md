@@ -1,3 +1,3 @@
-#Złożone struktury danych
+# Złożone struktury danych
 	- drzewo AVL 
 	- lista
