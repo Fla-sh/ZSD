@@ -2,6 +2,8 @@
 #include <string>
 #include <cstdlib>
 #include <ctime>
+#include <chrono>
+#include <fstream>
 
 using namespace std;
 
@@ -276,10 +278,10 @@ Node *predecessor_node(Node *p) {
 
 Node *find(Node *elem, int key) {
     while (elem && elem->data != key) {
-        cout << elem->data << " ";
+        //cout << elem->data << " ";
         elem = (key < elem->data) ? elem->left : elem->right;
     }
-    cout << elem->data << endl;
+    //cout << elem->data << endl;
     return elem;
 }
 
@@ -439,11 +441,11 @@ void createData(int size, int *el) {
     int el1;
     int el2;
     int x;
-
+    srand(time(NULL));
     for (i = 0; i < size; i++)
         el[i] = i + 1;
 
-    for (i = 0; i < 300; i++) {
+    for (i = 0; i < size; i++) {
         el1 = rand() % size;
         el2 = rand() % size;
 
@@ -458,7 +460,8 @@ void shuffle(int *el, int size) {
     int el2;
     int i;
     int x;
-    for (i = 0; i < 300; i++) {
+    srand(time(NULL));
+    for (i = 0; i < size; i++) {
         el1 = rand() % size;
         el2 = rand() % size;
 
@@ -486,8 +489,8 @@ void printBT(string sp, string sn, Node *v) {
 }
 
 int main() {
-    bool interactive = true;
-    Node *root = NULL;
+    bool interactive = false;
+    Node * root;
     if(interactive) {
         cout << "Choose option: " << endl;
         cout << "n:     print in-order" << endl;
@@ -544,22 +547,51 @@ int main() {
         }
     }
     else {
-        const int size = 30;
-        int el[size];
-        int i;
+        cout << "TEST" << endl;
+        const int sizes[] = {100, 500, 1000, 5000, 10000, 50000, 75000, 120000, 250000, 500000,
+                             750000, 1000000, 2000000};
+        const int lengt = sizeof(sizes) / 4;
+        ofstream out = ofstream("times_zsd.csv", ios::in);
+        out << "size,operation,time" << endl;
 
-        createData(size, el);
+        cout << "Samples: " << lengt << endl << endl;
 
-        srand(time(NULL));
+        int size;
+        for(size = 0; size < lengt; size++){
+            cout << "Testing size: " << sizes[size] << endl;
+            int el[sizes[size]];
+            int i;
+            cout << "Creating data set" << endl;
+            createData(sizes[size], el);
+            shuffle(el, sizes[size]);
 
-        for (i = 0; i < size; i++) insert_node(root, el[i]);
+            chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
+            for (i = 0; i < sizes[size]; i++) insert_node(root, el[i]);
+            chrono::high_resolution_clock::time_point t2 = chrono::high_resolution_clock::now();
+            out << sizes[size] << ",insert," << chrono::duration_cast<chrono::milliseconds>( t2 - t1 ).count() << endl;
+            cout << "Insertion time: " << chrono::duration_cast<chrono::milliseconds>( t2 - t1 ).count() << endl;
 
-        // printBT("","",root);
-        // shuffle(el, size);
-        // for(i = 0; i < 15; i++) remove(root,find(root,el[i]));
-        inorder(root);
-        cout << endl << endl;
-        remove_tree(root);
+            shuffle(el, sizes[size]);
+            t1 = chrono::high_resolution_clock::now();
+            for(i = 0; i < sizes[size] / 10; i++) remove(root,find(root,el[i]));
+            t2 = chrono::high_resolution_clock::now();
+            out << sizes[size] << ",remove," << chrono::duration_cast<chrono::milliseconds>( t2 - t1 ).count() << endl;
+            cout << "removing " << sizes[size] / 10 << " elements time: " << chrono::duration_cast<chrono::milliseconds>( t2 - t1 ).count() << endl;
+
+
+            for (i = 0; i < sizes[size]; i++) insert_node(root, el[i]);
+            t1 = chrono::high_resolution_clock::now();
+            remove_tree(root);
+            t2 = chrono::high_resolution_clock::now();
+            out << sizes[size] << ",remove_tree," << chrono::duration_cast<chrono::milliseconds>( t2 - t1 ).count() << endl;
+            cout << "removing entire tree time: " << chrono::duration_cast<chrono::milliseconds>( t2 - t1 ).count() << endl;
+
+            out << endl;
+
+            cout << endl;
+        }
     }
+
+
     return 0;
 } 
